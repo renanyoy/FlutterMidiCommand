@@ -10,7 +10,7 @@ import 'package:flutter_virtual_piano/flutter_virtual_piano.dart';
 class ControllerPage extends StatelessWidget {
   final MidiDevice device;
 
-  const ControllerPage(this.device, {Key? key}) : super(key: key);
+  const ControllerPage(this.device, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +26,7 @@ class ControllerPage extends StatelessWidget {
 class MidiControls extends StatefulWidget {
   final MidiDevice device;
 
-  const MidiControls(this.device, {Key? key}) : super(key: key);
+  const MidiControls(this.device, {super.key});
 
   @override
   MidiControlsState createState() {
@@ -56,9 +56,9 @@ class MidiControlsState extends State<MidiControls> {
     }
     _rxSubscription = _midiCommand.onMidiDataReceived?.listen((packet) {
       var data = packet.data;
-      var timestamp = packet.timestamp;
-      var device = packet.device;
       // if (kDebugMode) {
+      // var timestamp = packet.timestamp;
+      // var device = packet.device;
       //   print("data $data @ time $timestamp from device ${device.name}:${device.id}");
       // }
 
@@ -124,7 +124,8 @@ class MidiControlsState extends State<MidiControls> {
         SteppedSelector('Channel', _channel + 1, 1, 16, _onChannelChanged),
         const Divider(),
         Text("CC", style: Theme.of(context).textTheme.titleLarge),
-        SteppedSelector('Controller', _controller, 0, 127, _onControllerChanged),
+        SteppedSelector(
+            'Controller', _controller, 0, 127, _onControllerChanged),
         SlidingSelector('Value', _ccValue, 0, 127, _onValueChanged),
         const Divider(),
         Text("NRPN", style: Theme.of(context).textTheme.titleLarge),
@@ -150,7 +151,8 @@ class MidiControlsState extends State<MidiControls> {
           child: VirtualPiano(
             noteRange: const RangeValues(48, 76),
             onNotePressed: (note, vel) {
-              NoteOnMessage(channel: _channel, note: note, velocity: 100).send();
+              NoteOnMessage(channel: _channel, note: note, velocity: 100)
+                  .send();
             },
             onNoteReleased: (note) {
               NoteOffMessage(channel: _channel, note: note).send();
@@ -159,17 +161,15 @@ class MidiControlsState extends State<MidiControls> {
         ),
         const Divider(),
         Text("SysEx", style: Theme.of(context).textTheme.titleLarge),
-        ...[64, 128, 256, 512, 768, 1024]
-            .map(
-              (e) => Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  onPressed: () => _sendSysex(e),
-                  child: Text('Send $e bytes'),
-                ),
-              ),
-            )
-            ,
+        ...[64, 128, 256, 512, 768, 1024].map(
+          (e) => Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton(
+              onPressed: () => _sendSysex(e),
+              child: Text('Send $e bytes'),
+            ),
+          ),
+        ),
         const Divider(),
         Padding(
           padding: const EdgeInsets.all(8.0),
@@ -177,23 +177,28 @@ class MidiControlsState extends State<MidiControls> {
             children: [
               Text("Recorder", style: Theme.of(context).textTheme.titleLarge),
               Expanded(child: Container()),
-              Switch(value: _recorder.recording, onChanged: (newValue){
-                setState(() {
-                  if (newValue) {
-                    _recorder.startRecording();
-                  } else {
-                    _recorder.stopRecording();
-                  }
-                });
-              }),
-              TextButton(onPressed: (){
-                _recorder.exportRecording();
-              }, child: const Text("Export CSV")),
-              TextButton(onPressed: (){
-                _recorder.clearRecording();
-              }, child: const Text("Clear"))
+              Switch(
+                  value: _recorder.recording,
+                  onChanged: (newValue) {
+                    setState(() {
+                      if (newValue) {
+                        _recorder.startRecording();
+                      } else {
+                        _recorder.stopRecording();
+                      }
+                    });
+                  }),
+              TextButton(
+                  onPressed: () {
+                    _recorder.exportRecording();
+                  },
+                  child: const Text("Export CSV")),
+              TextButton(
+                  onPressed: () {
+                    _recorder.clearRecording();
+                  },
+                  child: const Text("Clear"))
             ],
-
           ),
         )
       ],
@@ -223,14 +228,16 @@ class MidiControlsState extends State<MidiControls> {
     setState(() {
       _ccValue = newValue;
     });
-    CCMessage(channel: _channel, controller: _controller, value: _ccValue).send();
+    CCMessage(channel: _channel, controller: _controller, value: _ccValue)
+        .send();
   }
 
   _onNRPNValueChanged(int newValue) {
     setState(() {
       _nrpnValue = newValue;
     });
-    NRPN4Message(channel: _channel, parameter: _nrpnCtrl, value: _nrpnValue).send();
+    NRPN4Message(channel: _channel, parameter: _nrpnCtrl, value: _nrpnValue)
+        .send();
   }
 
   _onNRPNCtrlChanged(int newValue) {
@@ -250,8 +257,8 @@ class MidiControlsState extends State<MidiControls> {
     print("Send $length SysEx bytes");
     final data = Uint8List(length);
     data[0] = 0xF0;
-    for (int i = 0; i < length -1; i++) {
-      data[i+1] = i % 0x80;
+    for (int i = 0; i < length - 1; i++) {
+      data[i + 1] = i % 0x80;
     }
     data[length - 1] = 0xF7;
     _midiCommand.sendData(data);
@@ -265,7 +272,9 @@ class SteppedSelector extends StatelessWidget {
   final int value;
   final Function(int) callback;
 
-  const SteppedSelector(this.label, this.value, this.minValue, this.maxValue, this.callback, {Key? key}) : super(key: key);
+  const SteppedSelector(
+      this.label, this.value, this.minValue, this.maxValue, this.callback,
+      {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -300,7 +309,9 @@ class SlidingSelector extends StatelessWidget {
   final int value;
   final Function(int) callback;
 
-  const SlidingSelector(this.label, this.value, this.minValue, this.maxValue, this.callback, {Key? key}) : super(key: key);
+  const SlidingSelector(
+      this.label, this.value, this.minValue, this.maxValue, this.callback,
+      {super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -3,17 +3,17 @@ import 'dart:typed_data';
 import 'flutter_midi_command.dart';
 
 enum MessageType {
-  CC,
-  PC,
-  NoteOn,
-  NoteOff,
-  NRPN,
-  RPN,
-  SYSEX,
-  Beat,
-  PolyAT,
-  AT,
-  PitchBend
+  cc,
+  pc,
+  noteOn,
+  noteOff,
+  nrpn,
+  rpn,
+  sysex,
+  beat,
+  polyAt,
+  at,
+  pitchBend
 }
 
 class MidiMessage {

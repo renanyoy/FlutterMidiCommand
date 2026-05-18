@@ -18,15 +18,13 @@ enum BluetoothState {
 
 class MidiCommand {
   factory MidiCommand() {
-    if (_instance == null) {
-      _instance = MidiCommand._();
-    }
+    _instance ??= MidiCommand._();
     return _instance!;
   }
 
   MidiCommand._();
 
-  dispose() {
+  void dispose() {
     _bluetoothStateStream.close();
     _onBluetoothStateChangedStreamSubscription?.cancel();
   }
@@ -35,7 +33,7 @@ class MidiCommand {
 
   static MidiCommandPlatform? __platform;
 
-  StreamController<Uint8List> _txStreamCtrl = StreamController.broadcast();
+  final StreamController<Uint8List> _txStreamCtrl = StreamController.broadcast();
 
   final _bluetoothStateStream = StreamController<BluetoothState>.broadcast();
 
@@ -43,7 +41,7 @@ class MidiCommand {
 
   BluetoothState _bluetoothState = BluetoothState.unknown;
   StreamSubscription? _onBluetoothStateChangedStreamSubscription;
-  _listenToBluetoothState() async {
+  Future<void> _listenToBluetoothState() async {
     _onBluetoothStateChangedStreamSubscription =
         _platform.onBluetoothStateChanged?.listen((s) {
       _bluetoothState = BluetoothState.values.byName(s);
