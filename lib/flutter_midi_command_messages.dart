@@ -1,7 +1,5 @@
 import 'dart:typed_data';
 
-import 'flutter_midi_command.dart';
-
 enum MessageType {
   cc,
   pc,
@@ -13,21 +11,15 @@ enum MessageType {
   beat,
   polyAt,
   at,
-  pitchBend
+  pitchBend,
 }
 
 class MidiMessage {
   /// Byte data of the message
-  Uint8List data = Uint8List(0);
+  Uint8List get data => Uint8List(0);
 
   /// Base class for MIDI message types
   MidiMessage();
-
-  /// Send the message bytes to all connected devices
-  void send({String? deviceId, int? timestamp}) {
-    // print("send $data");
-    MidiCommand().sendData(data, deviceId: deviceId, timestamp: timestamp);
-  }
 }
 
 class CCMessage extends MidiMessage {
@@ -39,12 +31,12 @@ class CCMessage extends MidiMessage {
   CCMessage({this.channel = 0, this.controller = 0, this.value = 0});
 
   @override
-  void send({String? deviceId, int? timestamp}) {
-    data = Uint8List(3);
+  Uint8List get data {
+    final data = Uint8List(3);
     data[0] = 0xB0 + channel;
     data[1] = controller;
     data[2] = value;
-    super.send(deviceId: deviceId, timestamp: timestamp);
+    return data;
   }
 }
 
@@ -56,11 +48,11 @@ class PCMessage extends MidiMessage {
   PCMessage({this.channel = 0, this.program = 0});
 
   @override
-  void send({String? deviceId, int? timestamp}) {
-    data = Uint8List(2);
+  Uint8List get data {
+    final data = Uint8List(2);
     data[0] = 0xC0 + channel;
     data[1] = program;
-    super.send(deviceId: deviceId, timestamp: timestamp);
+    return data;
   }
 }
 
@@ -73,12 +65,12 @@ class NoteOnMessage extends MidiMessage {
   NoteOnMessage({this.channel = 0, this.note = 0, this.velocity = 0});
 
   @override
-  void send({String? deviceId, int? timestamp}) {
-    data = Uint8List(3);
+  Uint8List get data {
+    final data = Uint8List(3);
     data[0] = 0x90 + channel;
     data[1] = note;
     data[2] = velocity;
-    super.send(deviceId: deviceId, timestamp: timestamp);
+    return data;
   }
 }
 
@@ -91,12 +83,12 @@ class NoteOffMessage extends MidiMessage {
   NoteOffMessage({this.channel = 0, this.note = 0, this.velocity = 0});
 
   @override
-  void send({String? deviceId, int? timestamp}) {
-    data = Uint8List(3);
+  Uint8List get data {
+    final data = Uint8List(3);
     data[0] = 0x80 + channel;
     data[1] = note;
     data[2] = velocity;
-    super.send(deviceId: deviceId, timestamp: timestamp);
+    return data;
   }
 }
 
@@ -108,16 +100,15 @@ class SysExMessage extends MidiMessage {
   SysExMessage({this.headerData = const [], this.value = 0});
 
   @override
-  void send({String? deviceId, int? timestamp}) {
-    data = Uint8List.fromList(headerData);
+  Uint8List get data {
+    final data = Uint8List.fromList(headerData);
     data.insert(0, 0xF0); // Start byte
     data.addAll(_bytesForValue(value));
     data.add(0xF7); // End byte
-    super.send(deviceId: deviceId, timestamp: timestamp);
+    return data;
   }
 
   Int8List _bytesForValue(int value) {
-    print("bytes for value $value");
     var bytes = Int8List(5);
 
     int absValue = value.abs();
@@ -152,7 +143,7 @@ class NRPN4Message extends MidiMessage {
   NRPN4Message({this.channel = 0, this.parameter = 0, this.value = 0});
 
   @override
-  void send({String? deviceId, int? timestamp}) {
+  Uint8List get data {
     parameter = parameter.clamp(0, 16383);
     int parameterMSB = parameter ~/ 128;
     int parameterLSB = parameter & 0x7F;
@@ -161,7 +152,7 @@ class NRPN4Message extends MidiMessage {
     int valueMSB = value ~/ 128;
     int valueLSB = value & 0x7F;
 
-    data = Uint8List(9);
+    final data = Uint8List(9);
     // Data Entry MSB
     data[0] = 0xB0 + channel;
     data[1] = 0x63;
@@ -179,7 +170,7 @@ class NRPN4Message extends MidiMessage {
     data[7] = 0x26;
     data[8] = valueLSB;
 
-    super.send(deviceId: deviceId, timestamp: timestamp);
+    return data;
   }
 }
 
@@ -192,14 +183,14 @@ class NRPN3Message extends MidiMessage {
   NRPN3Message({this.channel = 0, this.parameter = 0, this.value = 0});
 
   @override
-  void send({String? deviceId, int? timestamp}) {
+  Uint8List get data {
     parameter = parameter.clamp(0, 16383);
     int parameterMSB = parameter ~/ 128;
     int parameterLSB = parameter & 0x7F;
 
     value = value & 0x7F;
 
-    data = Uint8List(7);
+    final data = Uint8List(7);
     // Data Entry MSB
     data[0] = 0xB0 + channel;
     data[1] = 0x63;
@@ -213,7 +204,7 @@ class NRPN3Message extends MidiMessage {
     data[5] = 0x06;
     data[6] = value;
 
-    super.send(deviceId: deviceId, timestamp: timestamp);
+    return data;
   }
 }
 
@@ -234,8 +225,8 @@ class NRPNHexMessage extends MidiMessage {
   });
 
   @override
-  void send({String? deviceId, int? timestamp}) {
-    data = Uint8List(9);
+  Uint8List get data {
+    final data = Uint8List(9);
     // Data Entry MSB
     data[0] = 0xB0 + channel;
     data[1] = 0x63;
@@ -253,7 +244,7 @@ class NRPNHexMessage extends MidiMessage {
     data[7] = 0x26;
     data[8] = valueLSB;
 
-    super.send(deviceId: deviceId, timestamp: timestamp);
+    return data;
   }
 }
 
@@ -265,8 +256,8 @@ class NRPNNullMessage extends MidiMessage {
   NRPNNullMessage({this.channel = 0});
 
   @override
-  void send({String? deviceId, int? timestamp}) {
-    data = Uint8List(6);
+  Uint8List get data {
+    final data = Uint8List(6);
     // Data Entry MSB
     data[0] = 0xB0 + channel;
     data[1] = 0x63;
@@ -277,7 +268,7 @@ class NRPNNullMessage extends MidiMessage {
     data[4] = 0x62;
     data[5] = 0x7F;
 
-    super.send(deviceId: deviceId, timestamp: timestamp);
+    return data;
   }
 }
 
@@ -300,8 +291,8 @@ class RPNMessage extends MidiMessage {
   RPNMessage({this.channel = 0, this.parameter = 0, this.value = 0});
 
   @override
-  void send({String? deviceId, int? timestamp}) {
-    data = Uint8List(12);
+  Uint8List get data {
+    final data = Uint8List(12);
     // Data Entry MSB
     data[0] = 0xB0 + channel;
     data[1] = 0x65;
@@ -322,7 +313,7 @@ class RPNMessage extends MidiMessage {
     data[10] = 0x26;
     data[11] = value & 0x7F;
 
-    super.send(deviceId: deviceId, timestamp: timestamp);
+    return data;
   }
 }
 
@@ -343,9 +334,9 @@ class RPNHexMessage extends MidiMessage {
   });
 
   @override
-  void send({String? deviceId, int? timestamp}) {
+  Uint8List get data {
     var length = valueLSB > -1 ? 12 : 9;
-    data = Uint8List(length);
+    final data = Uint8List(length);
     // Data Entry MSB
     data[0] = 0xB0 + channel;
     data[1] = 0x65;
@@ -368,7 +359,7 @@ class RPNHexMessage extends MidiMessage {
       data[11] = valueLSB;
     }
 
-    super.send(deviceId: deviceId, timestamp: timestamp);
+    return data;
   }
 }
 
@@ -380,8 +371,8 @@ class RPNNullMessage extends MidiMessage {
   RPNNullMessage({this.channel = 0});
 
   @override
-  void send({String? deviceId, int? timestamp}) {
-    data = Uint8List(6);
+  Uint8List get data {
+    final data = Uint8List(6);
     // Data Entry MSB
     data[0] = 0xB0 + channel;
     data[1] = 0x65;
@@ -392,7 +383,7 @@ class RPNNullMessage extends MidiMessage {
     data[4] = 0x64;
     data[5] = 0x7F;
 
-    super.send(deviceId: deviceId, timestamp: timestamp);
+    return data;
   }
 }
 
@@ -404,18 +395,18 @@ class PitchBendMessage extends MidiMessage {
   PitchBendMessage({this.channel = 0, this.bend = 0});
 
   @override
-  void send({String? deviceId, int? timestamp}) {
+  Uint8List get data {
     double clampedBend = (bend.clamp(-1, 1) + 1) / 2.0;
     int targetValue = (clampedBend * 0x3FFF).round();
 
     int bendMSB = targetValue >> 7;
     int bendLSB = targetValue & 0x7F;
 
-    data = Uint8List(3);
+    final data = Uint8List(3);
     data[0] = 0xE0 + channel;
     data[1] = bendLSB;
     data[2] = bendMSB;
-    super.send(deviceId: deviceId, timestamp: timestamp);
+    return data;
   }
 }
 
@@ -428,12 +419,12 @@ class PolyATMessage extends MidiMessage {
   PolyATMessage({this.channel = 0, this.note = 0, this.pressure = 0});
 
   @override
-  void send({String? deviceId, int? timestamp}) {
-    data = Uint8List(3);
+  Uint8List get data {
+    final data = Uint8List(3);
     data[0] = 0xA0 + channel;
     data[1] = note;
     data[2] = pressure;
-    super.send(deviceId: deviceId, timestamp: timestamp);
+    return data;
   }
 }
 
@@ -445,11 +436,11 @@ class ATMessage extends MidiMessage {
   ATMessage({this.channel = 0, this.pressure = 0});
 
   @override
-  void send({String? deviceId, int? timestamp}) {
-    data = Uint8List(2);
+  Uint8List get data {
+    final data = Uint8List(2);
     data[0] = 0xD0 + channel;
     data[1] = pressure;
-    super.send(deviceId: deviceId, timestamp: timestamp);
+    return data;
   }
 }
 
@@ -457,10 +448,10 @@ class SenseMessage extends MidiMessage {
   /// Sense Message
 
   @override
-  void send({String? deviceId, int? timestamp}) {
-    data = Uint8List(1);
+  Uint8List get data {
+    final data = Uint8List(1);
     data[0] = 0xFE;
-    super.send(deviceId: deviceId, timestamp: timestamp);
+    return data;
   }
 }
 
@@ -473,8 +464,8 @@ class ClockMessage extends MidiMessage {
   ClockMessage({this.type = ClockType.beat});
 
   @override
-  void send({String? deviceId, int? timestamp}) {
-    data = Uint8List(1);
+  Uint8List get data {
+    final data = Uint8List(1);
     switch (type) {
       case ClockType.beat:
         data[0] = 0xF8;
@@ -489,6 +480,6 @@ class ClockMessage extends MidiMessage {
         data[0] = 0xFC;
         break;
     }
-    super.send(deviceId: deviceId, timestamp: timestamp);
+    return data;
   }
 }
