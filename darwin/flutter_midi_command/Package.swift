@@ -15,7 +15,9 @@ let package = Package(
             targets: ["flutter_midi_command"]
         )
     ],
-    dependencies: [],
+    dependencies: [
+        .package(name: "FlutterFramework", path: "../FlutterFramework")
+    ],
     targets: [
         .target(
             name: "flutter_midi_command",
